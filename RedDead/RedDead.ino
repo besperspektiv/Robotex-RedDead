@@ -26,6 +26,7 @@ uint8_t fifoBuffer[64]; // FIFO storage buffer
 Quaternion q;           // [w, x, y, z]         quaternion container
 VectorFloat gravity;    // [x, y, z]            gravity vector
 float ypr[3];  
+float y;
 
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
 void dmpDataReady() {
@@ -43,16 +44,13 @@ unsigned long Left_Sensor_On_Time;
 unsigned long Front_sensor_On_Time;
 int interval = 1000;                          //время задержки перед действием
 
-GyverPID AA_motor_PID(0.1, 0.05, 0.01, 10);
-GyverPID BB_motor_PID(0.1, 0.05, 0.01, 10);
-
-GyverPID Right_sensor_PID(1, 0, 0, 10);
-GyverPID Left_sensor_PID(1, 0, 0, 10);
+GyverPID all_motors_pid(1.5, 0.0, 0.1, 10); // П, И, Д,
 
 //=======Sensors========
 const byte sensor_front_Pin = A3;
 const byte sensor_right_Pin = A2;
 const byte sensor_left_Pin = A6;
+
 SharpDistSensor sensor_right(sensor_right_Pin, medianFilterWindowSize);
 SharpDistSensor sensor_left(sensor_left_Pin, medianFilterWindowSize);
 
@@ -60,7 +58,7 @@ SharpDistSensor sensor_left(sensor_left_Pin, medianFilterWindowSize);
 #define AA_PWM_Motor  6                       //        ↑
 #define AA_1_Motor  4                         //    █[][][]█
 #define AA_2_Motor  5                         //     [[][][]]
-//     [[][][]]      чёрные квадраты
+                                              //     [[][][]]      чёрные квадраты
 #define BB_PWM_Motor  3                       // AA  [[][][]] BB   это колёса
 #define BB_1_Motor  8                         //     [[][][]]
 #define BB_2_Motor  9                         //    █[][][]█
@@ -93,7 +91,6 @@ void setup() {
   pinMode(R, OUTPUT);
   pinMode(G, OUTPUT);
   pinMode(B, OUTPUT);
-  mySerial.begin(38400);
   Serial.begin(115200);
 
   //*****************************************************************
@@ -104,13 +101,22 @@ void setup() {
   pinMode(BB_PWM_Motor, OUTPUT);
   pinMode(BB_1_Motor, OUTPUT);
   pinMode(BB_2_Motor, OUTPUT);
+  ////////////////////PID///////////////
 
+  all_motors_pid.setpoint = 0;
+  
+  all_motors_pid.setDirection(REVERSE); // направление регулирования (NORMAL/REVERSE). ПО УМОЛЧАНИЮ СТОИТ NORMAL
+  all_motors_pid.setLimits(0, 255);    // пределы (ставим для 8 битного ШИМ). ПО УМОЛЧАНИЮ СТОЯТ 0 И 255
+  
+  //////////////////////////////////////
+  
   Serial.println("go");
 }
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////LOOP////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 void loop() {
+  Mooving_program();
   MPU6050_Read();
   Sensors_Read();
   Serial_Print();

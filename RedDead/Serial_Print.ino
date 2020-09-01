@@ -45,7 +45,7 @@ void Serial_Print(){
 //    mySerial.print(SpeedBB);
 
     //MPU6050
-    float y = ypr[0] * 180 / M_PI;
+    y = ypr[0] * 180 / M_PI;
     Serial.print    ("y\t");
     Serial.print    (y); Serial.print(" ");
 //    mySerial.print    (ypr[1] * 180 / M_PI); Serial.print(" ");
