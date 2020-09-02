@@ -44,9 +44,15 @@ unsigned long Left_Sensor_On_Time;
 unsigned long Front_sensor_On_Time;
 int interval = 1000;                          //время задержки перед действием
 
-GyverPID all_motors_pid(1.5, 0.0, 0.1, 10); // П, И, Д,
 
-//=======Sensors========
+int kp = 2.5;
+int ki = 0.01;
+int kd = 0.5;
+
+GyverPID all_motors_pid(kp, ki, kd, 20); // П, И, Д,
+
+//=======Distance Sensors========
+
 const byte sensor_front_Pin = A3;
 const byte sensor_right_Pin = A2;
 const byte sensor_left_Pin = A6;
@@ -104,7 +110,6 @@ void setup() {
   ////////////////////PID///////////////
 
   all_motors_pid.setpoint = 0;
-  
   all_motors_pid.setDirection(REVERSE); // направление регулирования (NORMAL/REVERSE). ПО УМОЛЧАНИЮ СТОИТ NORMAL
   all_motors_pid.setLimits(0, 255);    // пределы (ставим для 8 битного ШИМ). ПО УМОЛЧАНИЮ СТОЯТ 0 И 255
   
